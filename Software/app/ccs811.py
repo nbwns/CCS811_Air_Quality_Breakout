@@ -15,8 +15,17 @@ A new sensor requires at 48-burn in. Once burned in a sensor requires
 Tested on Raspberry Pi Zero W
 """
 
+"""
+Edited by Nicolas Bauwens
+September 9th, 2018
+"""
+
 import pigpio
 import time
+import os
+import ConfigParser
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from datetime import datetime
 
 CCS811_ADDR = 0x5B  # default I2C Address
 
@@ -43,6 +52,10 @@ class CCS811:
         self.device = self.pi.i2c_open(1, 0x5B)
         self.tVOC = 0
         self.CO2 = 0
+
+        self.config = ConfigParser.ConfigParser()
+        self.config.read(os.path.dirname(os.path.abspath(__file__)) + '/../conf/app.cfg')
+        self.config.sections()
 
     def print_error(self):
         error = self.pi.i2c_read_byte_data(self.device, CSS811_ERROR_ID)
@@ -132,6 +145,7 @@ class CCS811:
     def run(self):
 
         self.setup()
+        self.initAwsMqtt()
 
         while True:
             if self.data_available():
@@ -139,10 +153,13 @@ class CCS811:
 
                 print("CO2[%d] tVOC[%d]" % (self.CO2, self.tVOC))
 
+                currentDatetime = datetime.today().isoformat()
+                myMQTTClient.publish(self.config.get('aws', 'publish-topic'), '{"deviceId":"' + self.config.get('aws', 'device-id') + '", "date":"' + currentDatetime + '", "CO2":' + '"' + str(self.CO2) + '", "TVOC":"' + str(self.tVOC) + '"}', 0)
+
             elif self.check_for_error():
                 self.print_error()
 
-            time.sleep(1)
+            time.sleep(float(self.config.get('app','measure-delay')))
 
     def read_logorithm_results(self):
         b, d = self.pi.i2c_read_i2c_block_data(self.device, CSS811_ALG_RESULT_DATA, 4)
@@ -154,6 +171,29 @@ class CCS811:
 
         self.CO2 = (co2MSB << 8) | co2LSB
         self.tVOC = (tvocMSB << 8) | tvocLSB
+
+     def awsCallback(client, userdata, dummy, message):
+        print(message.payload)
+
+    def initAwsMqtt(self):
+        # For certificate based connection
+        global myMQTTClient
+        myMQTTClient = AWSIoTMQTTClient(self.config.get('aws', 'client-name'),useWebsocket=False)
+        print('IOT client name: ' + self.config.get('aws', 'client-name'))
+        print('AWS endpoint: ' + self.config.get('aws', 'endpoint'))
+        # Configurations
+        # For TLS mutual authentication
+        myMQTTClient.configureEndpoint(self.config.get('aws', 'endpoint'), self.config.get('aws', 'endpoint-port'))
+        myMQTTClient.configureCredentials(self.config.get('aws', 'root-ca'), self.config.get('aws', 'private-key'), self.config.get('aws', 'certificate'))
+        myMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+        myMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
+        myMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
+        myMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
+        print('Trying to connect to AWS')
+        myMQTTClient.connect()
+        print('Connected to AWS')
+        myMQTTClient.subscribe(self.config.get('aws', 'subscription-topic'), 1, self.awsCallback)
+        print('Subscribed to topic : ' + self.config.get('aws', 'subscription-topic'))
 
 
 c = CCS811()
