@@ -13,16 +13,10 @@ Repository Contents
 -------------------
 
 * **/Documentation** - Data sheets, additional product information
-* **/Enclosure** - Enclosure files 
-* **/Firmware** - Example code 
-* **/Hardware** - Eagle design files (.brd, .sch)
-* **/Libraries** - Libraries for use with the <PRODUCT NAME>
-* **/Production** - Production panel files (.brd)
-* **/Software** - Related software for the <PRODUCT NAME>
+* **/Software** - Related Python software
 
 Documentation
 --------------
-* **[Library](https://github.com/sparkfun/SparkFun_CCS811_Arduino_Library)** - <LANGUAGE> library for the <PRODUCT NAME>.
 * **[Hookup Guide](https://learn.sparkfun.com/tutorials/ccs811-air-quality-breakout-hookup-guide)** - Basic hookup guide for the <PRODUCT NAME>.
 * **[SparkFun Fritzing repo](https://github.com/sparkfun/Fritzing_Parts)** - Fritzing diagrams for SparkFun products.
 * **[SparkFun 3D Model repo](https://github.com/sparkfun/3D_Models)** - 3D models of SparkFun products. 
@@ -33,7 +27,9 @@ Product Versions
 
 Version History
 ---------------
-* [V 1.0.0](https://github.com/sparkfun/CCS811_Air_Quality_Breakout/tree/V_1.0.0) -- Initial commit of Arduino compatible library.
+* (https://github.com/sparkfun/CCS811_Air_Quality_Breakout/tree/V_1.0.0) -- Initial commit of Arduino compatible library.
+* (https://github.com/sasasaftic/CCS811_Air_Quality_Breakout) -- Python example by sasasaftic
+* AWS connection and publish added to Python example 
 
 License Information
 -------------------
