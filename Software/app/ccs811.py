@@ -172,7 +172,7 @@ class CCS811:
         self.CO2 = (co2MSB << 8) | co2LSB
         self.tVOC = (tvocMSB << 8) | tvocLSB
 
-     def awsCallback(client, userdata, dummy, message):
+    def awsCallback(client, userdata, dummy, message):
         print(message.payload)
 
     def initAwsMqtt(self):
